@@ -2,7 +2,6 @@
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Kems;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Crypto.Kems.MLKem;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -13,13 +12,13 @@ var demo = AnsiConsole.Prompt(
         .Title("Choose the [green]demo[/] to run?")
         .AddChoices(new[]
         {
-            "Kyber", "Dilithium"
+            "ML-KEM", "Dilithium"
         }));
 
 switch (demo)
 {
-    case "Kyber":
-        RunKyber();
+    case "ML-KEM":
+        RunMlKem();
         break;
     case "Dilithium":
         RunDilithium();
@@ -144,9 +143,9 @@ static DilithiumPrivateKeyParameters RecoverPrivateKeyFromExport(byte[] encodedP
     return new DilithiumPrivateKeyParameters(dilithiumParameters, rho, k, tr, s1, s2, t0, t1);
 }
 
-static void RunKyber() 
+static void RunMlKem() 
 {
-    Console.WriteLine("***************** KYBER *******************");
+    Console.WriteLine("***************** ML-KEM *******************");
     
     var random = new SecureRandom();
     var keyGenParameters = new MLKemKeyGenerationParameters(random, MLKemParameters.ml_kem_768);
@@ -165,29 +164,20 @@ static void RunKyber()
     PrintPanel("Alice's keys", new[] { $":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}" });
 
     // Bob encapsulates a new shared secret using Alice's public key
-    // var bobKyberKemGenerator = new KyberKemGenerator(random);
-    // var encapsulatedSecret = bobKyberKemGenerator.GenerateEncapsulated(alicePublic);
-    // var bobSecret = encapsulatedSecret.GetSecret();
-    //
-    // // cipher text produced by Bob and sent to Alice
-    // var cipherText = encapsulatedSecret.GetEncapsulation();
     var encapsulator = new MLKemEncapsulator(MLKemParameters.ml_kem_768);
     encapsulator.Init(new ParametersWithRandom(alicePublic, random));
 
-    byte[] cipherText = new byte[encapsulator.EncapsulationLength];
-    byte[] bobSecret = new byte[encapsulator.SecretLength];
+    var cipherText = new byte[encapsulator.EncapsulationLength];
+    var bobSecret = new byte[encapsulator.SecretLength];
     encapsulator.Encapsulate(cipherText, 0, cipherText.Length, bobSecret, 0, bobSecret.Length);
-
-
+    
     // Alice decapsulates a new shared secret using Alice's private key
-    // var aliceKemExtractor = new KyberKemExtractor(alicePrivate);
-    // var aliceSecret = aliceKemExtractor.ExtractSecret(cipherText);
-    // PrintPanel("Key encapsulation", new[] { $":man: Bob's secret: {bobSecret.PrettyPrint()}", $":locked_with_key: Cipher text (Bob -> Alice): {cipherText.PrettyPrint()}", $":woman: Alice's secret: {aliceSecret.PrettyPrint()}" });
     var decapsulator = new MLKemDecapsulator(MLKemParameters.ml_kem_768);
     decapsulator.Init(alicePrivate);
 
     byte[] aliceSecret = new byte[decapsulator.SecretLength];
     decapsulator.Decapsulate(cipherText, 0, cipherText.Length, aliceSecret, 0, aliceSecret.Length);
+    PrintPanel("Key encapsulation", new[] { $":man: Bob's secret: {bobSecret.PrettyPrint()}", $":locked_with_key: Cipher text (Bob -> Alice): {cipherText.PrettyPrint()}", $":woman: Alice's secret: {aliceSecret.PrettyPrint()}" });
     
     // Compare secrets
     var equal = bobSecret.SequenceEqual(aliceSecret);
