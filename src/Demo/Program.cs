@@ -1,8 +1,8 @@
 ﻿using System.Text;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Kems;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 using Spectre.Console;
@@ -12,7 +12,7 @@ var demo = AnsiConsole.Prompt(
         .Title("Choose the [green]demo[/] to run?")
         .AddChoices(new[]
         {
-            "ML-KEM", "Dilithium"
+            "ML-KEM", "ML-DSA"
         }));
 
 switch (demo)
@@ -20,127 +20,67 @@ switch (demo)
     case "ML-KEM":
         RunMlKem();
         break;
-    case "Dilithium":
-        RunDilithium();
+    case "ML-DSA":
+        RunMldsa();
         break;
     default:
         Console.WriteLine("Nothing selected!");
         break;
 }
 
-static void RunDilithium()
+static void RunMldsa()
 {
-    Console.WriteLine("***************** DILITHIUM *******************");
+    Console.WriteLine("***************** ML-DSA *******************");
     
-    var raw = "Hello, Dilithium!";
+    var raw = "Hello, ML-DSA!";
     Console.WriteLine($"Raw Message: {raw}");
 
     var data = Hex.Encode(Encoding.ASCII.GetBytes(raw));
     PrintPanel("Message", new[] { $"Raw: {raw}", $"Encoded: {data.PrettyPrint()}" });
 
+    // Initialize key generation
     var random = new SecureRandom();
-    var keyGenParameters = new DilithiumKeyGenerationParameters(random, DilithiumParameters.Dilithium3);
-    var dilithiumKeyPairGenerator = new DilithiumKeyPairGenerator();
-    dilithiumKeyPairGenerator.Init(keyGenParameters);
+    var keyGenParameters = new MLDsaKeyGenerationParameters(random, MLDsaParameters.ml_dsa_65); // Equivalent to Dilithium3
+    var mldsaKeyPairGenerator = new MLDsaKeyPairGenerator();
+    mldsaKeyPairGenerator.Init(keyGenParameters);
 
-    var keyPair = dilithiumKeyPairGenerator.GenerateKeyPair();
+    // Generate key pair
+    var keyPair = mldsaKeyPairGenerator.GenerateKeyPair();
 
-    // get and view the keys
-    var publicKey = (DilithiumPublicKeyParameters)keyPair.Public;
-    var privateKey = (DilithiumPrivateKeyParameters)keyPair.Private;
+    // Get and view the keys
+    var publicKey = (MLDsaPublicKeyParameters)keyPair.Public;
+    var privateKey = (MLDsaPrivateKeyParameters)keyPair.Private;
     var pubEncoded = publicKey.GetEncoded();
     var privateEncoded = privateKey.GetEncoded();
     PrintPanel("Keys", new[] { $":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}" });
 
-    // sign
-    var alice = new DilithiumSigner();
+    // Sign
+    var alice = new MLDsaSigner(MLDsaParameters.ml_dsa_65, deterministic: true);
     alice.Init(true, privateKey);
-    var signature = alice.GenerateSignature(data);
+    alice.BlockUpdate(data, 0, data.Length);
+    var signature = alice.GenerateSignature();
     PrintPanel("Signature", new[] { $":pen: {signature.PrettyPrint()}" });
 
-    // verify signature
-    var bob = new DilithiumSigner();
+    // Verify signature
+    var bob = new MLDsaSigner(MLDsaParameters.ml_dsa_65, deterministic: true);
     bob.Init(false, publicKey);
-    var verified = bob.VerifySignature(data, signature);
+    bob.BlockUpdate(data, 0, data.Length);
+    var verified = bob.VerifySignature(signature);
     PrintPanel("Verification", new[] { $"{(verified ? ":check_mark_button:" : ":cross_mark:")} Verified!" });
 
-    var aliceRecovered = new DilithiumSigner();
-    var recoveredKey = RecoverPrivateKeyFromExport(privateKey.GetEncoded(), DilithiumParameters.Dilithium3);
+    // Recreate signer from exported private key
+    var recoveredKey = MLDsaPrivateKeyParameters.FromEncoding(MLDsaParameters.ml_dsa_65, privateKey.GetEncoded());
+    var aliceRecovered = new MLDsaSigner(MLDsaParameters.ml_dsa_65, deterministic: true);
     aliceRecovered.Init(true, recoveredKey);
-    var signature2 = aliceRecovered.GenerateSignature(data);
-    PrintPanel("Signature (from key loaded from JWK)", new[] { $":pen: {signature2.PrettyPrint()}" });
+    aliceRecovered.BlockUpdate(data, 0, data.Length);
+    var signature2 = aliceRecovered.GenerateSignature();
+    PrintPanel("Signature (from recovered key)", new[] { $":pen: {signature2.PrettyPrint()}" });
     
-    // verify signature
-    var bobReVerified = bob.VerifySignature(data, signature2);
+    // Verify second signature
+    bob.Init(false, publicKey);
+    bob.BlockUpdate(data, 0, data.Length);
+    var bobReVerified = bob.VerifySignature(signature2);
     PrintPanel("Reverification", new[] { $"{(bobReVerified ? ":check_mark_button:" : ":cross_mark:")} Verified!" });
-}
-
-// based on https://github.com/bcgit/bc-csharp/blob/release-2.4.0/crypto/src/pqc/crypto/crystals/dilithium/DilithiumPrivateKeyParameters.cs
-static DilithiumPrivateKeyParameters RecoverPrivateKeyFromExport(byte[] encodedPrivateKey, DilithiumParameters dilithiumParameters)
-{
-    const int SeedBytes = 32;
-    const int TrBytes = 64;
-    //const int PolyT1PackedBytes = 320; // not used
-    const int PolyT0PackedBytes = 416;
-
-    int K, L, PolyEtaPackedBytes;
-    
-    // set parameters based on the Dilithium mode
-    if (dilithiumParameters == DilithiumParameters.Dilithium2)
-    {
-        K = 4;
-        L = 4;
-        PolyEtaPackedBytes = 96;
-    }
-    else if (dilithiumParameters == DilithiumParameters.Dilithium3)
-    {
-        K = 6;
-        L = 5;
-        PolyEtaPackedBytes = 128;
-    }
-    else if (dilithiumParameters == DilithiumParameters.Dilithium5)
-    {
-        K = 8;
-        L = 7;
-        PolyEtaPackedBytes = 96;
-    }
-    else
-    {
-        throw new NotSupportedException("Unsupported mode");
-    }
-
-    var s1Length = L * PolyEtaPackedBytes;
-    var s2Length = K * PolyEtaPackedBytes;
-    var t0Length = K * PolyT0PackedBytes;
-
-    var rho = new byte[SeedBytes];
-    var k = new byte[SeedBytes];
-    var tr = new byte[TrBytes];
-    var s1 = new byte[s1Length];
-    var s2 = new byte[s2Length];
-    var t0 = new byte[t0Length];
-
-    // copy the respective parts of the encoded private key
-    var offset = 0;
-    Array.Copy(encodedPrivateKey, offset, rho, 0, SeedBytes);
-    offset += SeedBytes;
-    Array.Copy(encodedPrivateKey, offset, k, 0, SeedBytes);
-    offset += SeedBytes;
-    Array.Copy(encodedPrivateKey, offset, tr, 0, TrBytes);
-    offset += TrBytes;
-    Array.Copy(encodedPrivateKey, offset, s1, 0, s1Length);
-    offset += s1Length;
-    Array.Copy(encodedPrivateKey, offset, s2, 0, s2Length);
-    offset += s2Length;
-    Array.Copy(encodedPrivateKey, offset, t0, 0, t0Length);
-    offset += t0Length;
-
-    // Handle t1 with the remaining bytes
-    var remainingLength = encodedPrivateKey.Length - offset;
-    var t1 = new byte[remainingLength];
-    Array.Copy(encodedPrivateKey, offset, t1, 0, remainingLength);
-
-    return new DilithiumPrivateKeyParameters(dilithiumParameters, rho, k, tr, s1, s2, t0, t1);
 }
 
 static void RunMlKem() 
