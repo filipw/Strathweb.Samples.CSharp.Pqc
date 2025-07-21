@@ -1,19 +1,12 @@
-﻿using System.Text;
-using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Crypto.Kems;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Encoders;
-using Spectre.Console;
+﻿using Spectre.Console;
 
 var demo = AnsiConsole.Prompt(
     new SelectionPrompt<string>()
         .Title("Choose the [green]demo[/] to run?")
-        .AddChoices(new[]
-        {
+        .AddChoices(
+        [
             "ML-KEM (BouncyCastle)", "ML-DSA (BouncyCastle)", "ML-KEM (Windows API)", "ML-DSA (Windows API)"
-        }));
+        ]));
 
 switch (demo)
 {

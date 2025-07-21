@@ -10,7 +10,7 @@ public static class WindowsDemo
     {
         if (!MLKem.IsSupported)
         {
-            PrintPanel("Error", new[] { $":broken_heart: ML-KEM is not supported on your Windows. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only." });
+            PrintPanel("Error", [$":broken_heart: ML-KEM is not supported on your Windows. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only."]);
             return;
         }
 
@@ -22,7 +22,7 @@ public static class WindowsDemo
         // Get and view the keys
         var pubEncoded = aliceKeyPair.ExportEncapsulationKey();
         var privateEncoded = aliceKeyPair.ExportDecapsulationKey();
-        PrintPanel("Alice's keys", new[] { $":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}" });
+        PrintPanel("Alice's keys", [$":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}"]);
 
         // Bob encapsulates a new shared secret using Alice's public key
         using var bobKey = MLKem.ImportEncapsulationKey(MLKemAlgorithm.MLKem768, pubEncoded);
@@ -30,18 +30,18 @@ public static class WindowsDemo
 
         // Alice decapsulates a new shared secret using Alice's private key
         byte[] aliceSecret = aliceKeyPair.Decapsulate(cipherText);
-        PrintPanel("Key encapsulation", new[] { $":man: Bob's secret: {bobSecret.PrettyPrint()}", $":locked_with_key: Cipher text (Bob -> Alice): {cipherText.PrettyPrint()}", $":woman: Alice's secret: {aliceSecret.PrettyPrint()}" });
+        PrintPanel("Key encapsulation", [$":man: Bob's secret: {bobSecret.PrettyPrint()}", $":locked_with_key: Cipher text (Bob -> Alice): {cipherText.PrettyPrint()}", $":woman: Alice's secret: {aliceSecret.PrettyPrint()}"]);
 
         // Compare secrets
         var equal = bobSecret.SequenceEqual(aliceSecret);
-        PrintPanel("Verification", new[] { $"{(equal ? ":check_mark_button:" : ":cross_mark:")} Secrets equal!" });
+        PrintPanel("Verification", [$"{(equal ? ":check_mark_button:" : ":cross_mark:")} Secrets equal!"]);
     }
 
     public static void RunMlDsa()
     {
         if (!MLDsa.IsSupported)
         {
-            PrintPanel("Error", new[] { $":broken_heart: ML-DSA is not supported on your Windows. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only." });
+            PrintPanel("Error", [$":broken_heart: ML-DSA is not supported on your Windows. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only."]);
             return;
         }
 
@@ -51,7 +51,7 @@ public static class WindowsDemo
         Console.WriteLine($"Raw Message: {raw}");
 
         var data = Encoding.ASCII.GetBytes(raw);
-        PrintPanel("Message", new[] { $"Raw: {raw}", $"Encoded: {data.PrettyPrint()}" });
+        PrintPanel("Message", [$"Raw: {raw}", $"Encoded: {data.PrettyPrint()}"]);
 
         // Generate key pair using ML-DSA 65 (equivalent to Dilithium3)
         using var mldsaKey = MLDsa.GenerateKey(MLDsaAlgorithm.MLDsa65);
@@ -59,29 +59,29 @@ public static class WindowsDemo
         // Export keys for demonstration
         var publicKeyBytes = mldsaKey.ExportSubjectPublicKeyInfo();
         var privateKeyBytes = mldsaKey.ExportPkcs8PrivateKey();
-        PrintPanel("Keys", new[] { $":unlocked: Public: {publicKeyBytes.PrettyPrint()}", $":locked: Private: {privateKeyBytes.PrettyPrint()}" });
+        PrintPanel("Keys", [$":unlocked: Public: {publicKeyBytes.PrettyPrint()}", $":locked: Private: {privateKeyBytes.PrettyPrint()}"]);
 
         // Sign the data
         var signatureBuffer = new byte[mldsaKey.Algorithm.SignatureSizeInBytes];
         int signatureLength = mldsaKey.SignData(data, signatureBuffer);
         var signature = signatureBuffer[..signatureLength];
-        PrintPanel("Signature", new[] { $":pen: {signature.PrettyPrint()}" });
+        PrintPanel("Signature", [$":pen: {signature.PrettyPrint()}"]);
 
         // Verify signature with the same key
         bool verified = mldsaKey.VerifyData(data, signature);
-        PrintPanel("Verification", new[] { $"{(verified ? ":check_mark_button:" : ":cross_mark:")} Verified!" });
+        PrintPanel("Verification", [$"{(verified ? ":check_mark_button:" : ":cross_mark:")} Verified!"]);
 
         // Demonstrate key import/export - recreate key from exported private key
         using var recoveredKey = MLDsa.ImportPkcs8PrivateKey(privateKeyBytes);
         var signature2Buffer = new byte[recoveredKey.Algorithm.SignatureSizeInBytes];
         int signature2Length = recoveredKey.SignData(data, signature2Buffer);
         var signature2 = signature2Buffer[..signature2Length];
-        PrintPanel("Signature (from recovered key)", new[] { $":pen: {signature2.PrettyPrint()}" });
+        PrintPanel("Signature (from recovered key)", [$":pen: {signature2.PrettyPrint()}"]);
 
         // Verify second signature with a public-key-only instance
         using var publicOnlyKey = MLDsa.ImportSubjectPublicKeyInfo(publicKeyBytes);
         bool verifiedWithPublicKey = publicOnlyKey.VerifyData(data, signature2);
-        PrintPanel("Reverification", new[] { $"{(verifiedWithPublicKey ? ":check_mark_button:" : ":cross_mark:")} Verified!" });
+        PrintPanel("Reverification", [$"{(verifiedWithPublicKey ? ":check_mark_button:" : ":cross_mark:")} Verified!"]);
     }
 
     static void PrintPanel(string header, string[] data)
