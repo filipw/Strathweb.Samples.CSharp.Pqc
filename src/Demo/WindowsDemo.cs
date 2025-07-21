@@ -3,9 +3,9 @@ using System.Text;
 using System.Security.Cryptography;
 using Spectre.Console;
 
-public static class Demo
+public static class WindowsDemo
 {
-    public static void RunMlKemWindows()
+    public static void RunMlKem()
     {
         if (!MLDsa.IsSupported)
         {
