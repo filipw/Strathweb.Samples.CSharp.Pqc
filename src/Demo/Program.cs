@@ -12,7 +12,7 @@ var demo = AnsiConsole.Prompt(
         .Title("Choose the [green]demo[/] to run?")
         .AddChoices(new[]
         {
-            "ML-KEM", "ML-DSA"
+            "ML-KEM", "ML-DSA", "ML-DSA (Windows)"
         }));
 
 switch (demo)
@@ -22,6 +22,9 @@ switch (demo)
         break;
     case "ML-DSA":
         RunMldsa();
+        break;
+    case "ML-DSA (Windows)":
+        Demo.RunMlKemWindows();
         break;
     default:
         Console.WriteLine("Nothing selected!");
