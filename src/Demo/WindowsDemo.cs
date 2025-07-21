@@ -5,7 +5,7 @@ using Spectre.Console;
 
 public static class WindowsDemo
 {
-    public static void RunMlKem()
+    public static void RunMlDsa()
     {
         if (!MLDsa.IsSupported)
         {

@@ -24,7 +24,7 @@ switch (demo)
         BouncyCastleDemo.RunMldsa();
         break;
     case "ML-DSA (Windows)":
-        WindowsDemo.RunMlKem();
+        WindowsDemo.RunMlDsa();
         break;
     default:
         Console.WriteLine("Nothing selected!");
