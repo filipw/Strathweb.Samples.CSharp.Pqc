@@ -1,10 +1,42 @@
 #pragma warning disable SYSLIB5006 // ML-DSA is experimental
 using System.Text;
 using System.Security.Cryptography;
+using System.Linq;
 using Spectre.Console;
 
 public static class WindowsDemo
 {
+    public static void RunMlKem()
+    {
+        if (!MLKem.IsSupported)
+        {
+            PrintPanel("Error", new[] { $":broken_heart: ML-KEM is not supported on your Windows. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only." });
+            return;
+        }
+
+        Console.WriteLine("***************** ML-KEM *******************");
+
+        // Generate key pair for Alice using ML-KEM 768
+        using var aliceKeyPair = MLKem.GenerateKey(MLKemAlgorithm.MLKem768);
+
+        // Get and view the keys
+        var pubEncoded = aliceKeyPair.ExportEncapsulationKey();
+        var privateEncoded = aliceKeyPair.ExportDecapsulationKey();
+        PrintPanel("Alice's keys", new[] { $":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}" });
+
+        // Bob encapsulates a new shared secret using Alice's public key
+        using var bobKey = MLKem.ImportEncapsulationKey(MLKemAlgorithm.MLKem768, pubEncoded);
+        bobKey.Encapsulate(out byte[] cipherText, out byte[] bobSecret);
+
+        // Alice decapsulates a new shared secret using Alice's private key
+        byte[] aliceSecret = aliceKeyPair.Decapsulate(cipherText);
+        PrintPanel("Key encapsulation", new[] { $":man: Bob's secret: {bobSecret.PrettyPrint()}", $":locked_with_key: Cipher text (Bob -> Alice): {cipherText.PrettyPrint()}", $":woman: Alice's secret: {aliceSecret.PrettyPrint()}" });
+
+        // Compare secrets
+        var equal = bobSecret.SequenceEqual(aliceSecret);
+        PrintPanel("Verification", new[] { $"{(equal ? ":check_mark_button:" : ":cross_mark:")} Secrets equal!" });
+    }
+
     public static void RunMlDsa()
     {
         if (!MLDsa.IsSupported)

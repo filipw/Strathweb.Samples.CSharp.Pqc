@@ -12,19 +12,22 @@ var demo = AnsiConsole.Prompt(
         .Title("Choose the [green]demo[/] to run?")
         .AddChoices(new[]
         {
-            "ML-KEM", "ML-DSA", "ML-DSA (Windows)"
+            "ML-KEM (BouncyCastle)", "ML-DSA (BouncyCastle)", "ML-KEM (Windows API)", "ML-DSA (Windows API)"
         }));
 
 switch (demo)
 {
-    case "ML-KEM":
+    case "ML-KEM (BouncyCastle)":
         BouncyCastleDemo.RunMlKem();
         break;
-    case "ML-DSA":
+    case "ML-DSA (BouncyCastle)":
         BouncyCastleDemo.RunMldsa();
         break;
-    case "ML-DSA (Windows)":
+    case "ML-DSA (Windows API)":
         WindowsDemo.RunMlDsa();
+        break;
+    case "ML-KEM (Windows API)":
+        WindowsDemo.RunMlKem();
         break;
     default:
         Console.WriteLine("Nothing selected!");
