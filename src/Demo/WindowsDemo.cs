@@ -62,9 +62,7 @@ public static class WindowsDemo
         PrintPanel("Keys", [$":unlocked: Public: {publicKeyBytes.PrettyPrint()}", $":locked: Private: {privateKeyBytes.PrettyPrint()}"]);
 
         // Sign the data
-        var signatureBuffer = new byte[mldsaKey.Algorithm.SignatureSizeInBytes];
-        int signatureLength = mldsaKey.SignData(data, signatureBuffer);
-        var signature = signatureBuffer[..signatureLength];
+        var signature = mldsaKey.SignData(data);
         PrintPanel("Signature", [$":pen: {signature.PrettyPrint()}"]);
 
         // Verify signature with the same key
@@ -73,9 +71,7 @@ public static class WindowsDemo
 
         // Demonstrate key import/export - recreate key from exported private key
         using var recoveredKey = MLDsa.ImportPkcs8PrivateKey(privateKeyBytes);
-        var signature2Buffer = new byte[recoveredKey.Algorithm.SignatureSizeInBytes];
-        int signature2Length = recoveredKey.SignData(data, signature2Buffer);
-        var signature2 = signature2Buffer[..signature2Length];
+        var signature2 = recoveredKey.SignData(data);
         PrintPanel("Signature (from recovered key)", [$":pen: {signature2.PrettyPrint()}"]);
 
         // Verify second signature with a public-key-only instance
