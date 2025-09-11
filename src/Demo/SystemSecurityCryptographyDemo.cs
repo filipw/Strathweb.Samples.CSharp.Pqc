@@ -4,13 +4,13 @@ using System.Security.Cryptography;
 using System.Linq;
 using Spectre.Console;
 
-public static class WindowsDemo
+public static class SystemSecurityCryptographyDemo
 {
     public static void RunMlKem()
     {
         if (!MLKem.IsSupported)
         {
-            PrintPanel("Error", [$":broken_heart: ML-KEM is not supported on your Windows. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only."]);
+            PrintPanel("Error", [$":broken_heart: ML-KEM is not supported on your system. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only on Windows, or for Linux with OpenSSL 3.5 an higher."]);
             return;
         }
 
@@ -41,8 +41,7 @@ public static class WindowsDemo
     {
         if (!MLDsa.IsSupported)
         {
-            PrintPanel("Error", [$":broken_heart: ML-DSA is not supported on your Windows. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only."]);
-            return;
+            PrintPanel("Error", [$":broken_heart: ML-KEM is not supported on your system. PQC capabilities are available for Windows Insiders, Canary Channel Build 27852 and higher only on Windows, or for Linux with OpenSSL 3.5 an higher."]);
         }
 
         Console.WriteLine("***************** ML-DSA *******************");

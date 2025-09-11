@@ -1,70 +1,45 @@
-﻿using LibOQS.NET;
-using Spectre.Console;
+﻿using Spectre.Console;
+using LibOQS.NET;
 
-try
-{
-    // Initialize LibOQS for the LibOQS.NET demos
-    LibOqs.Initialize();
-
-    var demo = AnsiConsole.Prompt(
-        new SelectionPrompt<string>()
-            .Title("Choose the [green]demo[/] to run?")
-            .AddChoices(
-            [
-                "ML-KEM (BouncyCastle)", 
-                "ML-DSA (BouncyCastle)", 
-                "ML-KEM (Windows API)", 
-                "ML-DSA (Windows API)",
+var demo = AnsiConsole.Prompt(
+    new SelectionPrompt<string>()
+        .Title("Choose the [green]demo[/] to run?")
+        .AddChoices(
+        [
+            "ML-KEM (BouncyCastle)",
+                "ML-DSA (BouncyCastle)",
+                "ML-KEM (System.Security.Cryptography API)",
+                "ML-DSA (System.Security.Cryptography API)",
                 "ML-KEM (LibOQS.NET)",
                 "ML-DSA (LibOQS.NET)"
-            ]));
+        ]));
 
-    switch (demo)
-    {
-        case "ML-KEM (BouncyCastle)":
-            BouncyCastleDemo.RunMlKem();
-            break;
-        case "ML-DSA (BouncyCastle)":
-            BouncyCastleDemo.RunMldsa();
-            break;
-        case "ML-DSA (Windows API)":
-            WindowsDemo.RunMlDsa();
-            break;
-        case "ML-KEM (Windows API)":
-            WindowsDemo.RunMlKem();
-            break;
-        case "ML-KEM (LibOQS.NET)":
-            LibOqsDemo.RunMlKem();
-            break;
-        case "ML-DSA (LibOQS.NET)":
-            LibOqsDemo.RunMldsa();
-            break;
-        default:
-            Console.WriteLine("Nothing selected!");
-            break;
-    }
-}
-catch (OqsException ex)
+switch (demo)
 {
-    AnsiConsole.Write(
-        new Panel($"[red]Error:[/] {ex.Message}")
-            .BorderColor(Color.Red)
-            .Header("[red]LibOQS Error[/]"));
-    
-    AnsiConsole.WriteLine();
-    AnsiConsole.Write(
-        new Panel("Please ensure the liboqs shared library is installed and accessible.\nSee BUILD.md for installation instructions.")
-            .BorderColor(Color.Yellow)
-            .Header("[yellow]Solution[/]"));
+    case "ML-KEM (BouncyCastle)":
+        BouncyCastleDemo.RunMlKem();
+        break;
+    case "ML-DSA (BouncyCastle)":
+        BouncyCastleDemo.RunMldsa();
+        break;
+    case "ML-DSA (System.Security.Cryptography API)":
+        SystemSecurityCryptographyDemo.RunMlDsa();
+        break;
+    case "ML-KEM (System.Security.Cryptography API)":
+        SystemSecurityCryptographyDemo.RunMlKem();
+        break;
+    case "ML-KEM (LibOQS.NET)":
+        LibOqsDemo.RunMlKem();
+        break;
+    case "ML-DSA (LibOQS.NET)":
+        LibOqsDemo.RunMldsa();
+        break;
+    default:
+        Console.WriteLine("Nothing selected!");
+        break;
 }
-catch (Exception ex)
-{
-    AnsiConsole.WriteException(ex);
-}
-finally
-{
-    LibOqs.Cleanup();
-}
+
+LibOqs.Cleanup();
 
 public static class FormatExtensions
 {
