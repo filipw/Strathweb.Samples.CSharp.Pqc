@@ -38,9 +38,11 @@ public static class LibOqsDemo
         var signature2 = sig.Sign(data, secretKey);
         PrintPanel("Signature (from recovered key)", [$":pen: {signature2.PrettyPrint()}"]);
 
-        // Verify second signature
-        var bobReVerified = sig.Verify(data, signature2, publicKey);
-        PrintPanel("Reverification", [$"{(bobReVerified ? ":check_mark_button:" : ":cross_mark:")} Verified!"]);
+        // Demonstrate verification with public-key-only scenario (common use case)
+        // In real world, verifier would only have the public key, not the full key pair
+        using var verifierSig = new SigInstance(SigAlgorithm.MlDsa65);
+        var verifiedWithPublicKeyOnly = verifierSig.Verify(data, signature2, publicKey);
+        PrintPanel("Reverification", [$"{(verifiedWithPublicKeyOnly ? ":check_mark_button:" : ":cross_mark:")} Verified!"]);
     }
 
     public static void RunMlKem()
