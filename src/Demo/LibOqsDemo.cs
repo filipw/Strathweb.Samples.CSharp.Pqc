@@ -38,7 +38,7 @@ public static class LibOqsDemo
         var signature2 = sig.Sign(data, secretKey);
         PrintPanel("Signature (from recovered key)", [$":pen: {signature2.PrettyPrint()}"]);
 
-        // Demonstrate verification with public-key-only scenario (common use case)
+        // Demonstrate verification with public-key-only scenario
         // In real world, verifier would only have the public key, not the full key pair
         using var verifierSig = new SigInstance(SigAlgorithm.MlDsa65);
         var verifiedWithPublicKeyOnly = verifierSig.Verify(data, signature2, publicKey);
