@@ -17,7 +17,7 @@ public static class BouncyCastleDemo
         Console.WriteLine($"Raw Message: {raw}");
 
         var data = Hex.Encode(Encoding.ASCII.GetBytes(raw));
-        PrintPanel("Message", [$"Raw: {raw}", $"Encoded: {data.PrettyPrint()}"]);
+        Helpers.PrintPanel("Message", [$"Raw: {raw}", $"Encoded: {data.PrettyPrint()}"]);
 
         // Initialize key generation
         var random = new SecureRandom();
@@ -33,21 +33,21 @@ public static class BouncyCastleDemo
         var privateKey = (MLDsaPrivateKeyParameters)keyPair.Private;
         var pubEncoded = publicKey.GetEncoded();
         var privateEncoded = privateKey.GetEncoded();
-        PrintPanel("Keys", [$":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}"]);
+        Helpers.PrintPanel("Keys", [$":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}"]);
 
         // Sign
         var alice = new MLDsaSigner(MLDsaParameters.ml_dsa_65, deterministic: true);
         alice.Init(true, privateKey);
         alice.BlockUpdate(data, 0, data.Length);
         var signature = alice.GenerateSignature();
-        PrintPanel("Signature", [$":pen: {signature.PrettyPrint()}"]);
+        Helpers.PrintPanel("Signature", [$":pen: {signature.PrettyPrint()}"]);
 
         // Verify signature
         var bob = new MLDsaSigner(MLDsaParameters.ml_dsa_65, deterministic: true);
         bob.Init(false, publicKey);
         bob.BlockUpdate(data, 0, data.Length);
         var verified = bob.VerifySignature(signature);
-        PrintPanel("Verification", [$"{(verified ? ":check_mark_button:" : ":cross_mark:")} Verified!"]);
+        Helpers.PrintPanel("Verification", [$"{(verified ? ":check_mark_button:" : ":cross_mark:")} Verified!"]);
 
         // Recreate signer from exported private key
         var recoveredKey = MLDsaPrivateKeyParameters.FromEncoding(MLDsaParameters.ml_dsa_65, privateKey.GetEncoded());
@@ -55,13 +55,13 @@ public static class BouncyCastleDemo
         aliceRecovered.Init(true, recoveredKey);
         aliceRecovered.BlockUpdate(data, 0, data.Length);
         var signature2 = aliceRecovered.GenerateSignature();
-        PrintPanel("Signature (from recovered key)", [$":pen: {signature2.PrettyPrint()}"]);
+        Helpers.PrintPanel("Signature (from recovered key)", [$":pen: {signature2.PrettyPrint()}"]);
 
         // Verify second signature
         bob.Init(false, publicKey);
         bob.BlockUpdate(data, 0, data.Length);
         var bobReVerified = bob.VerifySignature(signature2);
-        PrintPanel("Reverification", [$"{(bobReVerified ? ":check_mark_button:" : ":cross_mark:")} Verified!"]);
+        Helpers.PrintPanel("Reverification", [$"{(bobReVerified ? ":check_mark_button:" : ":cross_mark:")} Verified!"]);
     }
 
     public static void RunMlKem()
@@ -82,7 +82,7 @@ public static class BouncyCastleDemo
         var alicePrivate = (MLKemPrivateKeyParameters)aliceKeyPair.Private;
         var pubEncoded = alicePublic.GetEncoded();
         var privateEncoded = alicePrivate.GetEncoded();
-        PrintPanel("Alice's keys", [$":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}"]);
+        Helpers.PrintPanel("Alice's keys", [$":unlocked: Public: {pubEncoded.PrettyPrint()}", $":locked: Private: {privateEncoded.PrettyPrint()}"]);
 
         // Bob encapsulates a new shared secret using Alice's public key
         var encapsulator = new MLKemEncapsulator(MLKemParameters.ml_kem_768);
@@ -98,20 +98,10 @@ public static class BouncyCastleDemo
 
         byte[] aliceSecret = new byte[decapsulator.SecretLength];
         decapsulator.Decapsulate(cipherText, 0, cipherText.Length, aliceSecret, 0, aliceSecret.Length);
-        PrintPanel("Key encapsulation", [$":man: Bob's secret: {bobSecret.PrettyPrint()}", $":locked_with_key: Cipher text (Bob -> Alice): {cipherText.PrettyPrint()}", $":woman: Alice's secret: {aliceSecret.PrettyPrint()}"]);
+        Helpers.PrintPanel("Key encapsulation", [$":man: Bob's secret: {bobSecret.PrettyPrint()}", $":locked_with_key: Cipher text (Bob -> Alice): {cipherText.PrettyPrint()}", $":woman: Alice's secret: {aliceSecret.PrettyPrint()}"]);
 
         // Compare secrets
         var equal = bobSecret.SequenceEqual(aliceSecret);
-        PrintPanel("Verification", [$"{(equal ? ":check_mark_button:" : ":cross_mark:")} Secrets equal!"]);
-    }
-
-    static void PrintPanel(string header, string[] data)
-    {
-        var content = string.Join(Environment.NewLine, data);
-        var panel = new Panel(content)
-        {
-            Header = new PanelHeader(header)
-        };
-        AnsiConsole.Write(panel);
+        Helpers.PrintPanel("Verification", [$"{(equal ? ":check_mark_button:" : ":cross_mark:")} Secrets equal!"]);
     }
 }
