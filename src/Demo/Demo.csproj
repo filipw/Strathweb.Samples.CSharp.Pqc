@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
-    <PackageReference Include="LibOQS.NET" Version="0.1.2" />
-    <PackageReference Include="spectre.console" Version="0.50.0" />
+    <PackageReference Include="LibOQS.NET" Version="0.3.0" />
+    <PackageReference Include="spectre.console" Version="0.54.0" />
   </ItemGroup>
 
 </Project>
